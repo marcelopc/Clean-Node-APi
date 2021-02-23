@@ -4,7 +4,7 @@
   "description": "Clean-Node-APi",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --passWithNoTests --watch",
     "test:staged": "jest --passWithNoTests",
     "lint": "eslint './src/**' --fix"
   },
