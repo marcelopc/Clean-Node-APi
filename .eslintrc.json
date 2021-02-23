@@ -28,6 +28,7 @@
         "no-unused-vars": "off",
         "import/prefer-default-export": "off",
         "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
+        "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
         "import/extensions": [
             "error",
             "ignorePackages",
