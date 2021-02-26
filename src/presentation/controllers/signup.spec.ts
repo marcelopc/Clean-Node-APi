@@ -1,10 +1,13 @@
 import { SignUpController } from './signup';
 import { EmailValidator } from '../protocols';
 import { MissingParamError, InvalidParamError, ServerError } from '../errors';
+import { AccountModel } from '../../domain/models/account';
+import { AddAccount, AddAccountModel } from '../../domain/usecases/add-account';
 
 interface SutTypes {
   sut:SignUpController,
-  emailValidatorStub: EmailValidator
+  emailValidatorStub: EmailValidator,
+  addAccountStub: AddAccount
 }
 
 const makeEmailValidator = (): EmailValidator => {
@@ -17,11 +20,28 @@ const makeEmailValidator = (): EmailValidator => {
   return new EmailValidatorStub();
 };
 
+const makeAddAccount = (): AddAccount => {
+  class AddAccountStub implements AddAccount {
+    add(account: AddAccountModel): AccountModel {
+      const fakeAccount = {
+        id: 'valid_id',
+        name: 'valid_name',
+        email: 'valid_email@email.com',
+        password: 'valid_password',
+      };
+      return fakeAccount;
+    }
+  }
+
+  return new AddAccountStub();
+};
+
 const makeSut = (): SutTypes => {
   const emailValidatorStub = makeEmailValidator();
-  const sut = new SignUpController(emailValidatorStub);
+  const addAccountStub = makeAddAccount();
+  const sut = new SignUpController(emailValidatorStub, addAccountStub);
 
-  return { sut, emailValidatorStub };
+  return { sut, emailValidatorStub, addAccountStub };
 };
 
 describe('SignUp Controller', () => {
@@ -56,7 +76,7 @@ describe('SignUp Controller', () => {
     expect(httpResponse.body).toEqual(new MissingParamError('email'));
   });
 
-  test('Shold return 400 if no email is provided', () => {
+  test('Shold return 400 if no password is provided', () => {
     const { sut } = makeSut();
 
     const httpRequest = {
@@ -72,7 +92,7 @@ describe('SignUp Controller', () => {
     expect(httpResponse.body).toEqual(new MissingParamError('password'));
   });
 
-  test('Shold return 400 if no email is provided', () => {
+  test('Shold return 400 if no passwordConfirmation is provided', () => {
     const { sut } = makeSut();
 
     const httpRequest = {
@@ -157,5 +177,26 @@ describe('SignUp Controller', () => {
     const httpResponse = sut.handle(httpRequest);
     expect(httpResponse.statusCode).toBe(500);
     expect(httpResponse.body).toEqual(new ServerError());
+  });
+
+  test('Shold call AddAccount with correct values', () => {
+    const { sut, addAccountStub } = makeSut();
+    const addSpy = jest.spyOn(addAccountStub, 'add');
+
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password',
+        passwordConfirmation: 'any_password',
+      },
+    };
+
+    sut.handle(httpRequest);
+    expect(addSpy).toHaveBeenCalledWith({
+      name: 'any_name',
+      email: 'any_email@mail.com',
+      password: 'any_password',
+    });
   });
 });
