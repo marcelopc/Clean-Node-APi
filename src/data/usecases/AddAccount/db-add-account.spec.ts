@@ -6,14 +6,18 @@ interface SutTypes {
   encryptStub: Encrypter
 }
 
-const makeSut = ():SutTypes => {
-  class EncryperStub {
+const makeEncrypter = ():Encrypter => {
+  class EncryperStub implements Encrypter {
     encrypt(value:string): Promise<string> {
       return new Promise((resolve) => resolve('hashedValue'));
     }
   }
 
-  const encryptStub = new EncryperStub();
+  return new EncryperStub();
+};
+
+const makeSut = ():SutTypes => {
+  const encryptStub = makeEncrypter();
   const sut = new DBAddAccount(encryptStub);
 
   return { sut, encryptStub };
