@@ -35,4 +35,16 @@ describe('DbAddAccount UseCase', () => {
     await sut.add(AccountData);
     expect(encryptSpy).toHaveBeenCalledWith('valid_password');
   });
+
+  test('should throw if Encrypter throws', async () => {
+    const { sut, encryptStub } = makeSut();
+    jest.spyOn(encryptStub, 'encrypt').mockReturnValueOnce(new Promise((resolve, reject) => { reject(new Error()); }));
+    const AccountData = {
+      name: 'valid_name',
+      email: 'valid_email',
+      password: 'valid_password',
+    };
+    const promise = sut.add(AccountData);
+    await expect(promise).rejects.toThrow();
+  });
 });
