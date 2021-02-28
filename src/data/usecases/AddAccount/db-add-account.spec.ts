@@ -1,10 +1,28 @@
 import { DBAddAccount } from './db-add-account';
-import { Encrypter } from './db-add-account-protocols';
+import {
+  Encrypter, AddAccountModel, AccountModel, AddAccountRepository,
+} from './db-add-account-protocols';
 
 interface SutTypes {
   sut:DBAddAccount,
-  encryptStub: Encrypter
+  encryptStub: Encrypter,
+  addAccountRepositoryStub: AddAccountRepository
 }
+
+const makeAddAccountRepository = (): AddAccountRepository => {
+  class AddAccountRepositoryStub implements AddAccountRepository {
+    async add(account: AddAccountModel): Promise<AccountModel> {
+      const fakeAccount = {
+        id: 'valid_id',
+        name: 'valid_name',
+        email: 'valid_email',
+        password: 'hashedValue',
+      };
+      return new Promise((resolve) => resolve(fakeAccount));
+    }
+  }
+  return new AddAccountRepositoryStub();
+};
 
 const makeEncrypter = ():Encrypter => {
   class EncryperStub implements Encrypter {
@@ -18,9 +36,10 @@ const makeEncrypter = ():Encrypter => {
 
 const makeSut = ():SutTypes => {
   const encryptStub = makeEncrypter();
-  const sut = new DBAddAccount(encryptStub);
+  const addAccountRepositoryStub = makeAddAccountRepository();
+  const sut = new DBAddAccount(encryptStub, addAccountRepositoryStub);
 
-  return { sut, encryptStub };
+  return { sut, encryptStub, addAccountRepositoryStub };
 };
 
 describe('DbAddAccount UseCase', () => {
@@ -46,5 +65,21 @@ describe('DbAddAccount UseCase', () => {
     };
     const promise = sut.add(AccountData);
     await expect(promise).rejects.toThrow();
+  });
+
+  test('should call AddAccountRepository with correct values', async () => {
+    const { sut, addAccountRepositoryStub } = makeSut();
+    const addSpy = jest.spyOn(addAccountRepositoryStub, 'add');
+    const AccountData = {
+      name: 'valid_name',
+      email: 'valid_email',
+      password: 'valid_password',
+    };
+    await sut.add(AccountData);
+    expect(addSpy).toHaveBeenCalledWith({
+      name: 'valid_name',
+      email: 'valid_email',
+      password: 'hashedValue',
+    });
   });
 });
