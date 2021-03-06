@@ -1,6 +1,7 @@
 module.exports = {
   roots: ['<rootDir>/src'],
   collectCoverageFrom: ['<rootDir>/src/**/*.ts',
+    '!<rootDir>/src/main/**',
     '!<rootDir>/src/**/index.ts',
     '!<rootDir>/src/**/db-add-account-protocols.ts',
     '!<rootDir>/src/**/signup-protocols.ts',
