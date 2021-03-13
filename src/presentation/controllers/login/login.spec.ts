@@ -1,10 +1,9 @@
 import { InvalidParamError, MissingParamError } from '../../errors';
 import { LoginController } from './login';
 import {
-  EmailValidator, HttpRequest,
-} from '../signup/signup-protocols';
+  EmailValidator, HttpRequest, Authentication,
+} from './login-protocols';
 import { serverError, unauthorized } from '../../helpers/http-helper';
-import { Authentication } from '../../../domain/usecases/authentication';
 
 interface SutTypes {
   sut: LoginController,
@@ -30,6 +29,7 @@ const makeAuthentication = (): Authentication => {
 
   return new AuthenticationStub();
 };
+
 const makeSut = (): SutTypes => {
   const emailValidatorStub = makeEmailValidator();
   const authenticationStub = makeAuthentication();
